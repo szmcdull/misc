@@ -1,16 +1,38 @@
 #pragma once
-#ifdef _HAS_CXX17
+
+#if __cpp_lib_filesystem
+
 #include <filesystem>
 typedef std::filesystem::path PathType;
+namespace _StrUtils
+{
+    namespace filesystem = std::filesystem;
+}
+
+#elif __cpp_lib_experimental_filesystem
+
+#include <experimental/filesystem>
+typedef std::experimental::filesystem::path PathType;
+namespace _StrUtils
+{
+    namespace filesystem = std::experimental::filesystem;
+}
 #else
+
 #include <boost/filesystem.hpp>
 typedef boost::filesystem::path PathType;
+namespace _StrUtils
+{
+    namespace filesystem = boost::filesystem;
+}
 #endif
+
+namespace filesystem = _StrUtils::filesystem;
 
 template<typename C>
 PathType GetExeDir(const C* exepath)
 {
-    return std::filesystem::absolute(exepath).parent_path();
+    return _StrUtils::filesystem::absolute(exepath).parent_path();
 }
 
 template<typename C>
@@ -86,6 +108,17 @@ size_t StrLength(const wchar_t str[n])
     return n - 1;
 }
 
+inline size_t StrLength(const char)
+{
+    return 1;
+}
+
+inline size_t StrLength(const wchar_t)
+{
+    return 1;
+}
+
+
 template<class S, class Container>
 void StrSplit(S str, int delimiter, Container& c)
 {
@@ -102,4 +135,31 @@ void StrSplit(S str, int delimiter, Container& c)
         }
     }
     c.push_back(Container::value_type(str, start, length - start));
+}
+
+template<class S, class Container>
+std::basic_string<typename Container::value_type::value_type> StrJoin(const Container& c, S delimiter)
+{
+    size_t size = 0, sizeDelimiter = StrLength(delimiter);
+    for (auto& s : c)
+    {
+        size += StrLength(s) + sizeDelimiter;
+    }
+    if (size)
+    {
+        size -= sizeDelimiter;
+    }
+
+    std::basic_string<Container::value_type> result;
+    result.reserve(size);
+    for (auto p = c.begin();;)
+    {
+        result += *p;
+        p++;
+        if (p == c.end())
+            break;
+        result += delimiter;
+    }
+
+    return result;
 }
