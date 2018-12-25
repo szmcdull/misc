@@ -118,6 +118,18 @@ inline size_t StrLength(const wchar_t)
     return 1;
 }
 
+template<class T>
+bool StrIsDigit(const T& str)
+{
+    size_t length = StrLength(str);
+    for (size_t i = 0; i < length; i++)
+    {
+        auto c = str[i];
+        if (c < '0' || c > '9')
+            return false;
+    }
+    return true;
+}
 
 template<class S, class Container>
 void StrSplit(S str, int delimiter, Container& c)
@@ -162,4 +174,10 @@ std::basic_string<typename Container::value_type::value_type> StrJoin(const Cont
     }
 
     return result;
+}
+
+template<class V, class V2, class V3>
+bool InRange(const V& value, const V2& start, const V3& end)
+{
+    return value >= start && value < end;
 }
